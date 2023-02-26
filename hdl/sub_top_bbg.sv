@@ -1,7 +1,6 @@
 module sub_top_bbg(
     input clk,rst,
-    input signed [15:0]din1,din2,
-    output signed [15:0]dout1,dout2,
+    output signed [15:0]dout1,dout2,dout3,dout4,
     output [8:1]pmod
     );
     
@@ -68,4 +67,23 @@ module sub_top_bbg(
         .cke_out(),
         .tap(tap_intp1)
         );
+        
+    //LO multiplier and modulated signal
+    logic [27:0]lo_freq=268435456/50*10; //LO freq
+    logic signed [15:0]i_lo,q_lo;
+    iq_rom_nco nco(
+        .clk(clk),
+        .rst(rst),
+        .accum_rst(0),
+        .freq(lo_freq),
+        .sin(q_lo),
+        .cos(i_lo),
+        .trig(trig1)
+        );
+    
+    logic [31:0]temp1,temp2;
+    assign temp1=dout1*i_lo;
+    assign temp2=dout2*q_lo;
+    assign dout3=(temp1+temp2)>>>15;    //modulated signal
+    assign dout4=i_lo;      //LO
 endmodule
